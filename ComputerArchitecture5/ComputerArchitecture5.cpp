@@ -4,11 +4,12 @@
 #include <cmath>
 #include <chrono>
 using namespace std;
-const int N = 300;
+const int N = 10;
 
 int main(int argc, char** argv) {
+	setlocale(LC_ALL, "russian");
 	srand(time(NULL));
-	int arr[N][N], indi, indj, indi1, indj1, difference, numtasks, rank, res1, res2, begin, end;
+	int arr[N][N], indi, indj, indi1, indj1, difference, numtasks, rank, begin, end;
 	float averagevalue;
 	for (int i = 0; i < N; i++)
 		for (int j = 0; j < N; j++)
@@ -17,13 +18,12 @@ int main(int argc, char** argv) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
 	MPI_Barrier(MPI_COMM_WORLD);
-	MPI_Bcast(&(arr[0][0]), N * N, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(&averagevalue, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(arr, N * N, MPI_INT, 0, MPI_COMM_WORLD);
 	auto start_time = MPI_Wtime();
 	begin = rank * (N / numtasks); //номер процесса умножаетс€ на отношение размерности массива к количеству процессов
 	end = begin + (N / numtasks);  //к началу приавл€етс€ отношение размерности массива к количеству процессов
 	averagevalue = arr[0][0];
-
+	MPI_Bcast(&averagevalue, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	for (int i = begin; i < end; i++)
 		for (int j = 1; j < N; j++)
 			averagevalue += arr[i][j];
@@ -45,12 +45,11 @@ int main(int argc, char** argv) {
 	MPI_Reduce(&indi, &indi1, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 	MPI_Reduce(&indj, &indj1, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 	auto end_time = MPI_Wtime();
-	cout << "The coordinates of the element closest to the average of all array elements:" << indi1 << ", " << indj1 << endl;
-	cout << "Average value of all array elements:" << averagevalue << endl;
-	cout << "The element closest to it: " << arr[indi1][indj1] << endl;
-	cout << "Execution time of the main algorithm of the program:" << end_time - start_time << endl;
+	cout << "»ндексs элемента, наиболее близкого к среднему значению всех элементов массива: " << indi1 << ", " << indj1 << endl;
+	cout << "—реднее значение всех элементов массива: " << averagevalue << endl;
+	cout << "Ёлемент, наиболее близкий к нему: " << arr[indi1][indj1] << endl;
+	cout << "¬рем€ выполнени€ основного алгоритма программы: " << end_time - start_time << endl;
 	MPI_Finalize();
-	system("pause");
 	return 0;
 }
 
